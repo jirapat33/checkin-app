@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบเช็คอินฝึกงาน ปวส.2/1</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap');
+        body { font-family: 'Prompt', sans-serif; text-align: center; background-color: #f4f6f9; padding: 20px; color: #333; margin: 0; }
+        .container { max-width: 450px; background: white; margin: 30px auto; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #007bff; margin-bottom: 5px; font-weight: 600; }
+        p { font-size: 13px; color: #666; margin-bottom: 20px; }
+        input { width: 90%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; text-align: center; font-family: 'Prompt', sans-serif; }
+        input:focus { border-color: #007bff; outline: none; }
+        video { width: 100%; max-width: 350px; height: auto; border-radius: 10px; margin: 15px 0; background: #222; transform: scaleX(-1); }
+        button { width: 95%; padding: 14px; font-size: 16px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Prompt', sans-serif; transition: 0.3s; }
+        button:hover { background: #218838; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        #status { margin-top: 15px; font-size: 14px; font-weight: bold; line-height: 1.6; }
+        .loading { color: #ffc107; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📸 ระบบเช็คอินฝึกงานวิทยาลัย</h2>
+    <p>กรอกรหัสนักศึกษาเพื่อบันทึกเวลา พิกัด และถ่ายรูปลงห้อง ปวส.2/1</p>
+    
+    <input type="text" id="studentId" placeholder="กรอกรหัสนักศึกษา 10 หลัก" inputmode="numeric" required>
+    
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    
+    <button id="btnCheckIn">ถ่ายรูป & เช็คอินตอนนี้</button>
+    <div id="status">🎥 กำลังเรียกใช้งานกล้องถ่ายรูป...</div>
+</div>
+
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const btnCheckIn = document.getElementById('btnCheckIn');
+    const status = document.getElementById('status');
+    let stream = null;
+
+    async function startCamera() {
+      // ลองกล้องหน้าก่อน ถ้าไม่ได้ให้ fallback เป็นกล้องใดก็ได้
+      const constraints = [
+        { video: { facingMode: "user" }, audio: false },
+        { video: { facingMode: { ideal: "user" } }, audio: false },
+        { video: true, audio: false }
+      ];
+
+      for (let c of constraints) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(c);
+          video.srcObject = stream;
+          await video.play();
+          status.innerHTML = "<span style='color:#28a745;'>✅ พร้อมใช้งานกล้องถ่ายรูป</span>";
+          return; // สำเร็จแล้วออกจาก loop
+        } catch (err) {
+          console.warn("ลอง constraint นี้ไม่ได้:", c, err.name);
+        }
+      }
+
+      // ถ้าลองทุก constraint แล้วยังไม่ได้
+      status.innerHTML = `<span class='error'>
+        ❌ เปิดกล้องไม่ได้<br>
+        <b>วิธีแก้:</b><br>
+        1️⃣ กดที่ไอคอน 🔒 หรือ ℹ️ บน address bar<br>
+        2️⃣ เลือก "การตั้งค่าเว็บไซต์" → อนุญาต "กล้อง"<br>
+        3️⃣ รีโหลดหน้าใหม่
+      </span>`;
+      btnCheckIn.disabled = true;
+    }
+
+    // เรียกเปิดกล้องทันทีที่หน้าโหลด
+    startCamera();
+
+    btnCheckIn.addEventListener('click', async () => {
+        const studentId = document.getElementById('studentId').value.trim();
+        if (!studentId) {
+            alert("กรุณากรอกรหัสนักศึกษาของคุณก่อนกดเช็คอิน");
+            return;
+        }
+        if (!stream) {
+            alert("กล้องยังไม่พร้อม กรุณาอนุญาตสิทธิ์กล้องก่อน");
+            return;
+        }
+
+        btnCheckIn.disabled = true;
+        status.innerHTML = "<span class='loading'>📍 กำลังดึงพิกัด GPS...</span>";
+
+        // ถ่ายรูปก่อนเลย (ไม่ต้องรอ GPS เพื่อไม่ให้หน้าจอค้าง)
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = canvas.toDataURL('image/jpeg', 0.7);
+
+        if (!navigator.geolocation) {
+            alert("เบราว์เซอร์นี้ไม่รองรับ GPS");
+            btnCheckIn.disabled = false;
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const payload = {
+                    studentId: studentId,
+                    lat: position.coords.latitude,
+                    lon: position.coords.longitude,
+                    image: imageData
+                };
+
+                status.innerHTML = "<span class='loading'>📤 กำลังอัปโหลดข้อมูล...</span>";
+
+                google.script.run
+                    .withSuccessHandler((response) => {
+                        if (response === "SUCCESS") {
+                            status.innerHTML = "<span class='success'>✅ เช็คอินสำเร็จ!<br>บันทึกพิกัด เวลา และรูปถ่ายแล้ว</span>";
+                            document.getElementById('studentId').value = "";
+                        } else {
+                            status.innerHTML = "<span class='error'>❌ " + response + "</span>";
+                        }
+                        btnCheckIn.disabled = false;
+                    })
+                    .withFailureHandler(() => {
+                        status.innerHTML = "<span class='error'>❌ เชื่อมต่อระบบไม่ได้ ลองใหม่อีกครั้ง</span>";
+                        btnCheckIn.disabled = false;
+                    })
+                    .processCheckIn(payload);
+            },
+            (err) => {
+                status.innerHTML = "<span class='error'>❌ GPS ไม่ทำงาน: กรุณาเปิดสิทธิ์ตำแหน่งที่ตั้งในเบราว์เซอร์</span>";
+                btnCheckIn.disabled = false;
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    });
+</script>
+
+</body>
+</html>
