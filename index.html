@@ -148,6 +148,7 @@
 </div>
 
 <script>
+    // ⚠️ อย่าลืมอัปเดต URL เป็นเวอร์ชันล่าสุดหลังจาก Deploy ใหม่ใน Apps Script
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxuLcNxk5UmQ2QUt68hmQ_O112_vyfa_fN4qPu5qHnsuwsIxWc76emqKCsdDRv1mqXm/exec";
 
     const video  = document.getElementById('video');
@@ -156,7 +157,6 @@
     const status = document.getElementById('status');
     let stream   = null;
 
-    // เปิดกล้อง — ลอง 3 วิธีถ้าวิธีแรกไม่ได้
     async function startCamera() {
         const tries = [
             { video: { facingMode: "user" }, audio: false },
@@ -188,11 +188,18 @@
         btn.disabled = true;
         status.innerHTML = "<span class='loading'>📸 กำลังถ่ายรูป...</span>";
 
-        // ถ่ายรูปทันที
+        // ตั้งค่าขนาด Canvas
         canvas.width  = video.videoWidth  || 640;
         canvas.height = video.videoHeight || 480;
-        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = canvas.toDataURL('image/jpeg', 0.7);
+        const ctx = canvas.getContext('2d');
+        
+        // วาดรูปแบบ Mirror ให้ตรงกับจอกล้องที่คนเรียนเห็น
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // แปลงภาพ
+        const imageData = canvas.toDataURL('image/jpeg', 0.6); // ปรับคุณภาพเหลือ 0.6 เพื่อให้ขนาดไฟล์เล็กลง อัปโหลดไวขึ้น
 
         // ดึง GPS
         status.innerHTML = "<span class='loading'>📍 กำลังดึงพิกัด GPS...</span>";
@@ -202,17 +209,17 @@
             status.innerHTML = "<span class='loading'>📤 กำลังอัปโหลดข้อมูล...</span>";
 
             const payload = {
-                studentId,
-                lat:   pos.coords.latitude,
-                lon:   pos.coords.longitude,
+                studentId: studentId,
+                lat: pos.coords.latitude,
+                lon: pos.coords.longitude,
                 image: imageData
             };
 
             try {
-                const res  = await fetch(APPS_SCRIPT_URL, {
+                // ส่งข้อมูลโดยใช้ Content-Type: text/plain เพื่อเลี่ยง CORS ของ Apps Script
+                const res = await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
-                    body:   JSON.stringify(payload),
-                    headers: { "Content-Type": "text/plain" }
+                    body: JSON.stringify(payload)
                 });
                 const text = await res.text();
 
