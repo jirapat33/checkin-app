@@ -45,7 +45,6 @@
             margin-bottom: 10px;
             letter-spacing: 0.5px;
         }
-
         input {
             width: 100%;
             padding: 14px 16px;
@@ -61,7 +60,6 @@
         }
         input::placeholder { color: rgba(255,255,255,0.35); }
         input:focus { outline: none; border-color: #00d2ff; background: rgba(255,255,255,0.12); }
-
         .camera-wrap {
             position: relative;
             border-radius: 16px;
@@ -94,9 +92,7 @@
         }
         .camera-overlay::before { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
         .camera-overlay::after  { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
-
         canvas { display: none; }
-
         button {
             width: 100%;
             padding: 15px;
@@ -113,7 +109,6 @@
         }
         button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,210,255,0.35); }
         button:disabled { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.4); cursor: not-allowed; transform: none; }
-
         #status {
             margin-top: 16px;
             font-size: 13px;
@@ -143,12 +138,12 @@
     </div>
     <canvas id="canvas"></canvas>
 
-    <button id="btnCheckIn" disabled>ถ่ายรูป &amp; เช็คอินตอนนี้</button>
+    <button id="btnCheckIn" disabled>ถ่ายรูป & เช็คอินตอนนี้</button>
     <div id="status"><span class="loading">🎥 กำลังเปิดกล้อง...</span></div>
 </div>
 
 <script>
-    // ⚠️ อย่าลืมอัปเดต URL เป็นเวอร์ชันล่าสุดหลังจาก Deploy ใหม่ใน Apps Script
+    // ⚠️ นำลิงก์ Web App (ที่ลงท้ายด้วย /exec) จาก Google Apps Script มาใส่ตรงนี้
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVUO6TsTD9QfBVStgb0Z-4AS0--LXufErxAiG2GgoW5I6SyouBtylzoroKK7Wce2HK/exec";
 
     const video  = document.getElementById('video');
@@ -188,20 +183,16 @@
         btn.disabled = true;
         status.innerHTML = "<span class='loading'>📸 กำลังถ่ายรูป...</span>";
 
-        // ตั้งค่าขนาด Canvas
         canvas.width  = video.videoWidth  || 640;
         canvas.height = video.videoHeight || 480;
         const ctx = canvas.getContext('2d');
         
-        // วาดรูปแบบ Mirror ให้ตรงกับจอกล้องที่คนเรียนเห็น
         ctx.translate(canvas.width, 0);
         ctx.scale(-1, 1);
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         
-        // แปลงภาพ
-        const imageData = canvas.toDataURL('image/jpeg', 0.6); // ปรับคุณภาพเหลือ 0.6 เพื่อให้ขนาดไฟล์เล็กลง อัปโหลดไวขึ้น
+        const imageData = canvas.toDataURL('image/jpeg', 0.6);
 
-        // ดึง GPS
         status.innerHTML = "<span class='loading'>📍 กำลังดึงพิกัด GPS...</span>";
         if (!navigator.geolocation) { alert("เบราว์เซอร์ไม่รองรับ GPS"); btn.disabled = false; return; }
 
@@ -216,9 +207,9 @@
             };
 
             try {
-                // ส่งข้อมูลโดยใช้ Content-Type: text/plain เพื่อเลี่ยง CORS ของ Apps Script
                 const res = await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
+                    mode: "cors",
                     body: JSON.stringify(payload)
                 });
                 const text = await res.text();
