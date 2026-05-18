@@ -145,8 +145,13 @@
 </div>
 
 <script>
-    // ⚠️ ระบุ URL ของ Apps Script ตัวเดียวกับหน้าเช็คอิน
+    // บรรทัดที่ประมาณ 94 ในโค้ดจัดการข้อมูลแอดมินของคุณ
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVUO6TsTD9QfBVStgb0Z-4AS0--LXufErxAiG2GgoW5I6SyouBtylzoroKK7Wce2HK/exec";
+
+// และเลื่อนลงมาปรับแก้บรรทัดที่ประมาณ 107 เพื่อเปลี่ยนวิธีส่ง action ป้องกันสัญลักษณ์เครื่องหมายตกหล่น
+// จากเดิมที่เป็น: const response = await fetch(`${APPS_SCRIPT_URL}?action=getStudents`);
+// ให้เปลี่ยนเขียนเป็นแบบนี้แทนครับ:
+    const response = await fetch(APPS_SCRIPT_URL + "?action=getStudents");
 
     // โหลดข้อมูลเมื่อเปิดหน้าเว็บ
     window.onload = loadStudentData;
