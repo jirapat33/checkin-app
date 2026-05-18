@@ -186,8 +186,19 @@
 
                 // คอลัมน์พิกัดและรูปภาพ
                 const mapLink = student.lat ? `<a href="https://www.google.com/maps?q=${student.lat},${student.lon}" target="_blank">📍 แผนที่</a>` : "-";
-                const imgTag = student.imageUrl ? `<a href="${student.imageUrl}" target="_blank"><img src="${student.imageUrl}" class="thumb-img"></a>` : "ไม่มีรูป";
-
+                
+                // ฟังก์ชันแปลงลิงก์ Google Drive ให้เป็น Direct Link สำหรับแสดงใน <img>
+                let directImageUrl = student.imageUrl;
+                if (student.imageUrl && student.imageUrl.includes("drive.google.com")) {
+                    // ดึง File ID ออกมาจากลิงก์
+                    const fileId = student.imageUrl.match(/[-\w]{25,}/);
+                    if (fileId) {
+                        directImageUrl = `https://lh3.googleusercontent.com/d/${fileId[0]}=s200`; 
+                        // s200 คือปรับขนาดรูปให้เล็กลงเพื่อโหลดเร็วขึ้น (ปรับเปลี่ยนตัวเลขได้ตามชอบ)
+                    }
+                }
+                
+                const imgTag = student.imageUrl ? `<a href="${student.imageUrl}" target="_blank"><img src="${directImageUrl}" class="thumb-img" onerror="this.src='https://placehold.co/45x45?text=Error'"></a>` : "ไม่มีรูป";
                 tr.innerHTML = `
                     <td>${student.studentId}</td>
                     <td class="name-cell"><span class="txt-view">${student.name}</span><input type="text" class="edit-input" value="${student.name}" style="display:none;"></td>
