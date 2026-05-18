@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบหลังบ้าน Admin - ปวส2/1</title>
+    <title>ระบบหลังบ้าน Admin - ปวส.2/1</title>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,8 +41,6 @@
             font-weight: 600;
         }
         .btn-refresh:hover { background: #00d2ff; }
-        
-        /* สถิติสรุปยอด */
         .summary-box {
             display: flex;
             gap: 15px;
@@ -58,8 +56,6 @@
         .bg-total { background: #6c757d; }
         .bg-success { background: #28a745; }
         .bg-danger { background: #dc3545; }
-
-        /* ตารางรายชื่อ */
         .table-responsive { overflow-x: auto; }
         table {
             width: 100%;
@@ -74,7 +70,6 @@
         }
         th { background-color: #16213e; color: white; }
         tr:hover { background-color: #f8f9fa; }
-        
         .status-badge {
             padding: 4px 8px;
             border-radius: 20px;
@@ -83,19 +78,16 @@
         }
         .status-yes { background: #d4edda; color: #155724; }
         .status-no { background: #f8d7da; color: #721c24; }
-        
         .thumb-img {
             width: 45px;
             height: 45px;
             object-fit: cover;
             border-radius: 6px;
             border: 1px solid #ddd;
+            cursor: pointer;
         }
-        
-        /* ปุ่มจัดการ */
         .btn-edit { background: #ffc107; color: #000; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; font-family: 'Prompt', sans-serif;}
         .btn-save { background: #28a745; color: #fff; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; font-family: 'Prompt', sans-serif; display: none;}
-        
         input[type="text"].edit-input, input[type="datetime-local"].edit-input {
             width: 100%;
             padding: 6px;
@@ -103,7 +95,6 @@
             border-radius: 4px;
             font-family: 'Prompt', sans-serif;
         }
-        
         #loadingStatus { text-align: center; font-weight: 600; color: #3a7bd5; padding: 20px 0; }
     </style>
 </head>
@@ -115,7 +106,6 @@
         <button class="btn-refresh" onclick="loadStudentData()">🔄 รีโหลดข้อมูล</button>
     </div>
 
-    <!-- สรุปยอดจำนวนคน -->
     <div class="summary-box">
         <div class="card bg-total">นักศึกษาทั้งหมด: <span id="countTotal">0</span> คน</div>
         <div class="card bg-success">เช็คอินแล้ว: <span id="countDone">0</span> คน</div>
@@ -138,22 +128,15 @@
                 </tr>
             </thead>
             <tbody id="studentTableBody">
-                <!-- ข้อมูลนักศึกษาจะถูกดึงมาใส่ตรงนี้ด้วย JavaScript -->
-            </tbody>
+                </tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // บรรทัดที่ประมาณ 94 ในโค้ดจัดการข้อมูลแอดมินของคุณ
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVUO6TsTD9QfBVStgb0Z-4AS0--LXufErxAiG2GgoW5I6SyouBtylzoroKK7Wce2HK/exec";
+    // ⚠️ ใช้ลิงก์เดียวกันกับหน้าเช็คอิน (ลิงก์ที่ลงท้ายด้วย /exec)
+    const APPS_SCRIPT_URL = "ใส่ลิงก์_WEB_APP_URL_ตรงนี้";
 
-// และเลื่อนลงมาปรับแก้บรรทัดที่ประมาณ 107 เพื่อเปลี่ยนวิธีส่ง action ป้องกันสัญลักษณ์เครื่องหมายตกหล่น
-// จากเดิมที่เป็น: const response = await fetch(`${APPS_SCRIPT_URL}?action=getStudents`);
-// ให้เปลี่ยนเขียนเป็นแบบนี้แทนครับ:
-    const response = await fetch(APPS_SCRIPT_URL + "?action=getStudents");
-
-    // โหลดข้อมูลเมื่อเปิดหน้าเว็บ
     window.onload = loadStudentData;
 
     async function loadStudentData() {
@@ -163,8 +146,7 @@
         tableBody.innerHTML = "";
 
         try {
-            // เรียกดึงข้อมูลผ่านคำสั่ง ?action=getStudents ใน doGet
-            const response = await fetch(`${APPS_SCRIPT_URL}?action=getStudents`);
+            const response = await fetch(APPS_SCRIPT_URL + "?action=getStudents");
             const students = await response.json();
             
             if (students.error) {
@@ -184,21 +166,18 @@
                 const tr = document.createElement('tr');
                 tr.id = `row-${student.rowNum}`;
 
-                // คอลัมน์พิกัดและรูปภาพ
+                // แปลงลิงก์รูปภาพของ Google Drive ให้กลายเป็น Direct Link
+                let directImageUrl = student.imageUrl;
+                if (student.imageUrl && student.imageUrl.includes("drive.google.com")) {
+                    const fileId = student.imageUrl.match(/[-\w]{25,}/);
+                    if (fileId) {
+                        directImageUrl = `https://drive.google.com/uc?export=view&id=${fileId[0]}`;
+                    }
+                }
+
                 const mapLink = student.lat ? `<a href="https://www.google.com/maps?q=${student.lat},${student.lon}" target="_blank">📍 แผนที่</a>` : "-";
-                
-                // ฟังก์ชันแปลงลิงก์ Google Drive ให้เป็น Direct Link สำหรับแสดงใน <img>
-                // let directImageUrl = student.imageUrl;
-                // if (student.imageUrl && student.imageUrl.includes("drive.google.com")) {
-                //     // ดึง File ID ออกมาจากลิงก์
-                //     const fileId = student.imageUrl.match(/[-\w]{25,}/);
-                //     if (fileId) {
-                //         directImageUrl = `https://lh3.googleusercontent.com/d/${fileId[0]}=s200`; 
-                //         // s200 คือปรับขนาดรูปให้เล็กลงเพื่อโหลดเร็วขึ้น (ปรับเปลี่ยนตัวเลขได้ตามชอบ)
-                //     }
-                // }
-                
                 const imgTag = student.imageUrl ? `<a href="${student.imageUrl}" target="_blank"><img src="${directImageUrl}" class="thumb-img" onerror="this.src='https://placehold.co/45x45?text=Error'"></a>` : "ไม่มีรูป";
+
                 tr.innerHTML = `
                     <td>${student.studentId}</td>
                     <td class="name-cell"><span class="txt-view">${student.name}</span><input type="text" class="edit-input" value="${student.name}" style="display:none;"></td>
@@ -206,7 +185,7 @@
                     <td class="time-cell">
                         <span class="txt-view">${student.checkInTime}</span>
                         <input type="datetime-local" class="edit-input" style="display:none;" value="${isChecked ? student.checkInTime.replace(' ', 'T') : ''}">
-                        <small class="edit-note" style="display:none; color:red; font-size:10px;"><br>*ลบวันเวลาออกทั้งหมดเพื่อเซ็ตเป็นยังไม่เช็คอิน</small>
+                        <small class="edit-note" style="display:none; color:red; font-size:10px;"><br>*ลบวันเวลาออกเพื่อเปลี่ยนเป็นยังไม่เช็คอิน</small>
                     </td>
                     <td>${imgTag}</td>
                     <td>${mapLink}</td>
@@ -218,17 +197,15 @@
                 tableBody.appendChild(tr);
             });
 
-            // อัปเดตสถิติตัวเลขด้านบน
             document.getElementById('countTotal').innerText = students.length;
             document.getElementById('countDone').innerText = doneCount;
             document.getElementById('countNotDone').innerText = notDoneCount;
 
         } catch (err) {
-            loading.innerHTML = "❌ ไม่สามารถโหลดข้อมูลได้เนื่องจาก: " + err.message;
+            loading.innerHTML = "❌ ไม่สามารถโหลดข้อมูลได้: " + err.message;
         }
     }
 
-    // กดปุ่มเพื่อเปลี่ยนแถวนั้นให้กลายเป็นกล่องข้อความพร้อมให้แก้ไข
     function enableEdit(rowNum) {
         const row = document.getElementById(`row-${rowNum}`);
         row.querySelectorAll('.txt-view').forEach(el => el.style.display = 'none');
@@ -239,7 +216,6 @@
         row.querySelector('.btn-save').style.display = 'inline-block';
     }
 
-    // ส่งข้อมูลที่ Admin แก้ไขกลับไปบันทึกที่ Google Sheets ผ่านฟังก์ชัน doPost
     async function saveEdit(rowNum) {
         const row = document.getElementById(`row-${rowNum}`);
         const newName = row.querySelector('.name-cell .edit-input').value.trim();
@@ -250,11 +226,10 @@
         row.querySelector('.btn-save').disabled = true;
         row.querySelector('.btn-save').innerText = "⏳...";
 
-        // จัดการเรื่องฟอร์แมตวันที่ส่งกลับ
         if(newTime) {
             newTime = newTime.replace('T', ' ');
         } else {
-            newTime = "ยังไม่เช็คอิน"; // ปล่อยว่างจะเปลี่ยนสถานะกลับเป็นยังไม่เช็คอิน
+            newTime = "ยังไม่เช็คอิน";
         }
 
         const payload = {
@@ -267,20 +242,21 @@
         try {
             const response = await fetch(APPS_SCRIPT_URL, {
                 method: "POST",
+                mode: "cors",
                 body: JSON.stringify(payload)
             });
             const result = await response.text();
 
             if (result === "SUCCESS") {
                 alert("🎉 อัปเดตข้อมูลเรียบร้อยแล้ว!");
-                loadStudentData(); // โหลดตารางใหม่เพื่อแสดงผลข้อมูลล่าสุด
+                loadStudentData();
             } else {
                 alert("❌ เกิดข้อผิดพลาด: " + result);
                 row.querySelector('.btn-save').disabled = false;
                 row.querySelector('.btn-save').innerText = "💾 บันทึก";
             }
         } catch (err) {
-            alert("❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์: " + err.message);
+            alert("❌ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์: " + err.message);
             row.querySelector('.btn-save').disabled = false;
             row.querySelector('.btn-save').innerText = "💾 บันทึก";
         }
