@@ -158,4 +158,44 @@
         ctx.translate(canvas.width, 0);
         ctx.scale(-1, 1);
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = canvas.toDataURL('image/jp
+        const imageData = canvas.toDataURL('image/jpeg', 0.6);
+
+        status.innerHTML = "<span class='loading'>📍 กำลังดึงพิกัด GPS...</span>";
+        if (!navigator.geolocation) { alert("เบราว์เซอร์ไม่รองรับ GPS"); btn.disabled = false; return; }
+
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            status.innerHTML = "<span class='loading'>📤 กำลังอัปโหลดข้อมูล...</span>";
+
+            try {
+                const res = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    mode: "cors",
+                    redirect: "follow",
+                    body: JSON.stringify({
+                        studentId: studentId,
+                        lat: pos.coords.latitude,
+                        lon: pos.coords.longitude,
+                        image: imageData
+                    })
+                });
+                const text = await res.text();
+
+                if (text === "SUCCESS") {
+                    status.innerHTML = "<span class='success'>✅ เช็คอินสำเร็จ!<br>บันทึกเวลา พิกัด และรูปถ่ายแล้ว</span>";
+                    document.getElementById('studentId').value = "";
+                } else {
+                    status.innerHTML = "<span class='error'>❌ " + text + "</span>";
+                }
+            } catch (err) {
+                status.innerHTML = "<span class='error'>❌ เชื่อมต่อไม่ได้: " + err.message + "</span>";
+            }
+            btn.disabled = false;
+
+        }, () => {
+            status.innerHTML = "<span class='error'>❌ GPS ไม่ทำงาน: กรุณาเปิดสิทธิ์ตำแหน่งที่ตั้ง</span>";
+            btn.disabled = false;
+        }, { enableHighAccuracy: true, timeout: 10000 });
+    });
+</script>
+</body>
+</html>
