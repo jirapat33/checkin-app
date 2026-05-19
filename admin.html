@@ -7,135 +7,64 @@
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Prompt', sans-serif;
-            background: #f4f6f9;
-            color: #333;
-            padding: 30px 15px;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 24px;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
+        body { font-family: 'Prompt', sans-serif; background: #f4f6f9; color: #333; padding: 30px 15px; }
+        .container { max-width: 1000px; margin: 0 auto; background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
         h2 { color: #16213e; font-size: 24px; }
-        .btn-refresh {
-            background: #3a7bd5;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: 'Prompt', sans-serif;
-            font-weight: 600;
-        }
+        .btn-refresh { background: #3a7bd5; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-family: 'Prompt', sans-serif; font-weight: 600; }
         .btn-refresh:hover { background: #00d2ff; }
-        .summary-box {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .card {
-            flex: 1;
-            padding: 15px;
-            border-radius: 10px;
-            color: white;
-            font-weight: 600;
-        }
+        .summary-box { display: flex; gap: 15px; margin-bottom: 20px; }
+        .card { flex: 1; padding: 15px; border-radius: 10px; color: white; font-weight: 600; }
         .bg-total { background: #6c757d; }
         .bg-success { background: #28a745; }
         .bg-danger { background: #dc3545; }
         .table-responsive { overflow-x: auto; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            text-align: left;
-        }
-        th, td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #ddd;
-            font-size: 14px;
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; text-align: left; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #ddd; font-size: 14px; }
         th { background-color: #16213e; color: white; }
         tr:hover { background-color: #f8f9fa; }
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
+        .status-badge { padding: 4px 8px; border-radius: 20px; font-size: 12px; font-weight: bold; }
         .status-yes { background: #d4edda; color: #155724; }
         .status-no { background: #f8d7da; color: #721c24; }
-        .thumb-img {
-            width: 45px;
-            height: 45px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            cursor: pointer;
-        }
-        .btn-edit { background: #ffc107; color: #000; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; font-family: 'Prompt', sans-serif;}
-        .btn-save { background: #28a745; color: #fff; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; font-family: 'Prompt', sans-serif; display: none;}
-        input[type="text"].edit-input, input[type="datetime-local"].edit-input {
-            width: 100%;
-            padding: 6px;
-            border: 1px solid #3a7bd5;
-            border-radius: 4px;
-            font-family: 'Prompt', sans-serif;
-        }
+        .thumb-img { width: 45px; height: 45px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; cursor: pointer; }
+        .btn-edit { background: #ffc107; color: #000; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; font-family: 'Prompt', sans-serif; }
+        .btn-save { background: #28a745; color: #fff; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; font-family: 'Prompt', sans-serif; display: none; }
+        input[type="text"].edit-input, input[type="datetime-local"].edit-input { width: 100%; padding: 6px; border: 1px solid #3a7bd5; border-radius: 4px; font-family: 'Prompt', sans-serif; }
         #loadingStatus { text-align: center; font-weight: 600; color: #3a7bd5; padding: 20px 0; }
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="header">
         <h2>🛠️ ระบบจัดการข้อมูลและติดตามเช็คอิน (ปวส.2/1)</h2>
         <button class="btn-refresh" onclick="loadStudentData()">🔄 รีโหลดข้อมูล</button>
     </div>
-
     <div class="summary-box">
         <div class="card bg-total">นักศึกษาทั้งหมด: <span id="countTotal">0</span> คน</div>
         <div class="card bg-success">เช็คอินแล้ว: <span id="countDone">0</span> คน</div>
         <div class="card bg-danger">ยังไม่เช็คอิน: <span id="countNotDone">0</span> คน</div>
     </div>
-
     <div id="loadingStatus">⏳ กำลังโหลดข้อมูลจาก Google Sheet...</div>
-
     <div class="table-responsive">
         <table>
             <thead>
                 <tr>
-                    <th style="width: 12%">รหัสนักศึกษา</th>
-                    <th style="width: 20%">ชื่อ-นามสกุล</th>
-                    <th style="width: 15%">สถานะ</th>
-                    <th style="width: 23%">เวลาเช็คอิน</th>
-                    <th style="width: 10%">รูปถ่าย</th>
-                    <th style="width: 10%">พิกัด</th>
-                    <th style="width: 10%">จัดการ</th>
+                    <th>รหัสนักศึกษา</th>
+                    <th>ชื่อ-นามสกุล</th>
+                    <th>สถานะ</th>
+                    <th>เวลาเช็คอิน</th>
+                    <th>รูปถ่าย</th>
+                    <th>พิกัด</th>
+                    <th>จัดการ</th>
                 </tr>
             </thead>
-            <tbody id="studentTableBody">
-                </tbody>
+            <tbody id="studentTableBody"></tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // ⚠️ ใช้ลิงก์เดียวกันกับหน้าเช็คอิน (ลิงก์ที่ลงท้ายด้วย /exec)
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFHGJCrSlWVQ9Bk5tU7vpmY7u3vgQ2wyKY6_0qhFOt88C0I5iQnjYkPrsQlc4uKXH2/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVUO6TsTD9QfBVStgb0Z-4AS0--LXufErxAiG2GgoW5I6SyouBtylzoroKK7Wce2HK/exec";
 
     window.onload = loadStudentData;
 
@@ -143,44 +72,50 @@
         const tableBody = document.getElementById('studentTableBody');
         const loading = document.getElementById('loadingStatus');
         loading.style.display = "block";
+        loading.innerHTML = "⏳ กำลังโหลดข้อมูลจาก Google Sheet...";
         tableBody.innerHTML = "";
 
         try {
-            const response = await fetch(APPS_SCRIPT_URL + "?action=getStudents");
-            const students = await response.json();
-            
+            const response = await fetch(APPS_SCRIPT_URL + "?action=getStudents", {
+                method: "GET",
+                mode: "cors",
+                redirect: "follow"
+            });
+
+            const text = await response.text();
+            const students = JSON.parse(text);
+
             if (students.error) {
                 loading.innerHTML = "❌ เกิดข้อผิดพลาด: " + students.error;
                 return;
             }
 
             loading.style.display = "none";
-            
+
             let doneCount = 0;
             let notDoneCount = 0;
 
             students.forEach(student => {
                 const isChecked = student.checkInTime !== "ยังไม่เช็คอิน";
-                if(isChecked) doneCount++; else notDoneCount++;
+                if (isChecked) doneCount++; else notDoneCount++;
 
-                const tr = document.createElement('tr');
-                tr.id = `row-${student.rowNum}`;
-
-                // แปลงลิงก์รูปภาพของ Google Drive ให้กลายเป็น Direct Link
                 let directImageUrl = student.imageUrl;
                 if (student.imageUrl && student.imageUrl.includes("drive.google.com")) {
                     const fileId = student.imageUrl.match(/[-\w]{25,}/);
-                    if (fileId) {
-                        directImageUrl = `https://drive.google.com/uc?export=view&id=${fileId[0]}`;
-                    }
+                    if (fileId) directImageUrl = `https://drive.google.com/uc?export=view&id=${fileId[0]}`;
                 }
 
                 const mapLink = student.lat ? `<a href="https://www.google.com/maps?q=${student.lat},${student.lon}" target="_blank">📍 แผนที่</a>` : "-";
                 const imgTag = student.imageUrl ? `<a href="${student.imageUrl}" target="_blank"><img src="${directImageUrl}" class="thumb-img" onerror="this.src='https://placehold.co/45x45?text=Error'"></a>` : "ไม่มีรูป";
 
+                const tr = document.createElement('tr');
+                tr.id = `row-${student.rowNum}`;
                 tr.innerHTML = `
                     <td>${student.studentId}</td>
-                    <td class="name-cell"><span class="txt-view">${student.name}</span><input type="text" class="edit-input" value="${student.name}" style="display:none;"></td>
+                    <td class="name-cell">
+                        <span class="txt-view">${student.name}</span>
+                        <input type="text" class="edit-input" value="${student.name}" style="display:none;">
+                    </td>
                     <td><span class="status-badge ${isChecked ? 'status-yes' : 'status-no'}">${isChecked ? 'เช็คอินแล้ว' : 'ยังไม่เช็ค'}</span></td>
                     <td class="time-cell">
                         <span class="txt-view">${student.checkInTime}</span>
@@ -191,7 +126,7 @@
                     <td>${mapLink}</td>
                     <td>
                         <button class="btn-edit" onclick="enableEdit(${student.rowNum})">✏️ แก้ไข</button>
-                        <button class="btn-save" onclick="saveEdit(${student.rowNum})" style="display:none;">💾 บันทึก</button>
+                        <button class="btn-save" onclick="saveEdit(${student.rowNum})">💾 บันทึก</button>
                     </td>
                 `;
                 tableBody.appendChild(tr);
@@ -208,59 +143,4 @@
 
     function enableEdit(rowNum) {
         const row = document.getElementById(`row-${rowNum}`);
-        row.querySelectorAll('.txt-view').forEach(el => el.style.display = 'none');
-        row.querySelectorAll('.edit-input').forEach(el => el.style.display = 'block');
-        if (row.querySelector('.edit-note')) row.querySelector('.edit-note').style.display = 'inline';
-        
-        row.querySelector('.btn-edit').style.display = 'none';
-        row.querySelector('.btn-save').style.display = 'inline-block';
-    }
-
-    async function saveEdit(rowNum) {
-        const row = document.getElementById(`row-${rowNum}`);
-        const newName = row.querySelector('.name-cell .edit-input').value.trim();
-        let newTime = row.querySelector('.time-cell .edit-input').value;
-
-        if(!newName) { alert("กรุณาระบุชื่อนักศึกษาด้วยครับ"); return; }
-
-        row.querySelector('.btn-save').disabled = true;
-        row.querySelector('.btn-save').innerText = "⏳...";
-
-        if(newTime) {
-            newTime = newTime.replace('T', ' ');
-        } else {
-            newTime = "ยังไม่เช็คอิน";
-        }
-
-        const payload = {
-            action: "adminUpdate",
-            rowNum: rowNum,
-            name: newName,
-            checkInTime: newTime
-        };
-
-        try {
-            const response = await fetch(APPS_SCRIPT_URL, {
-                method: "POST",
-                mode: "cors",
-                body: JSON.stringify(payload)
-            });
-            const result = await response.text();
-
-            if (result === "SUCCESS") {
-                alert("🎉 อัปเดตข้อมูลเรียบร้อยแล้ว!");
-                loadStudentData();
-            } else {
-                alert("❌ เกิดข้อผิดพลาด: " + result);
-                row.querySelector('.btn-save').disabled = false;
-                row.querySelector('.btn-save').innerText = "💾 บันทึก";
-            }
-        } catch (err) {
-            alert("❌ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์: " + err.message);
-            row.querySelector('.btn-save').disabled = false;
-            row.querySelector('.btn-save').innerText = "💾 บันทึก";
-        }
-    }
-</script>
-</body>
-</html>
+        row.querySelectorAll
