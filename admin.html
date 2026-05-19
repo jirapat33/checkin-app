@@ -143,4 +143,49 @@
 
     function enableEdit(rowNum) {
         const row = document.getElementById(`row-${rowNum}`);
-        row.querySelectorAll
+        row.querySelectorAll('.txt-view').forEach(el => el.style.display = 'none');
+        row.querySelectorAll('.edit-input').forEach(el => el.style.display = 'block');
+        if (row.querySelector('.edit-note')) row.querySelector('.edit-note').style.display = 'inline';
+        row.querySelector('.btn-edit').style.display = 'none';
+        row.querySelector('.btn-save').style.display = 'inline-block';
+    }
+
+    async function saveEdit(rowNum) {
+        const row = document.getElementById(`row-${rowNum}`);
+        const newName = row.querySelector('.name-cell .edit-input').value.trim();
+        let newTime = row.querySelector('.time-cell .edit-input').value;
+
+        if (!newName) { alert("กรุณาระบุชื่อนักศึกษาด้วยครับ"); return; }
+
+        const btnSave = row.querySelector('.btn-save');
+        btnSave.disabled = true;
+        btnSave.innerText = "⏳...";
+
+        newTime = newTime ? newTime.replace('T', ' ') : "ยังไม่เช็คอิน";
+
+        try {
+            const response = await fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                mode: "cors",
+                redirect: "follow",
+                body: JSON.stringify({ action: "adminUpdate", rowNum, name: newName, checkInTime: newTime })
+            });
+            const result = await response.text();
+
+            if (result === "SUCCESS") {
+                alert("🎉 อัปเดตข้อมูลเรียบร้อยแล้ว!");
+                loadStudentData();
+            } else {
+                alert("❌ เกิดข้อผิดพลาด: " + result);
+                btnSave.disabled = false;
+                btnSave.innerText = "💾 บันทึก";
+            }
+        } catch (err) {
+            alert("❌ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์: " + err.message);
+            btnSave.disabled = false;
+            btnSave.innerText = "💾 บันทึก";
+        }
+    }
+</script>
+</body>
+</html>
